@@ -3,17 +3,25 @@ from fastapi import FastAPI
 from database import get_db_connection
 from routers.auth import router as auth_router
 from routers.resumes import router as resumes_router
+from routers.analysis import router as analysis_router
+from routers.jobs import router as jobs_router
 
 
 app = FastAPI(
     title="Resume Analyser API",
-    description="Backend API for analysing resumes, skills, education, experience, and career opportunities.",
+    description=(
+        "Backend API for analysing resumes, skills, education, "
+        "experience, and career opportunities."
+    ),
     version="1.0.0"
 )
 
 
+# Register API routers
 app.include_router(auth_router)
 app.include_router(resumes_router)
+app.include_router(analysis_router)
+app.include_router(jobs_router)
 
 
 @app.get("/")
@@ -38,7 +46,10 @@ def database_health():
 
     try:
         cursor = connection.cursor()
-        cursor.execute("SELECT DATABASE(), VERSION();")
+
+        cursor.execute(
+            "SELECT DATABASE(), VERSION();"
+        )
 
         database_name, mysql_version = cursor.fetchone()
 
