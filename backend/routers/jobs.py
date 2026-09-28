@@ -10,6 +10,7 @@ from services.skill_gap_analyzer import analyse_skill_gap
 from services.job_matcher import calculate_job_match
 from services.job_recommender import recommend_jobs
 from services.career_advisor import generate_career_advice
+from services.jd_analyzer import analyze_job_description
 
 router = APIRouter(
     prefix="/jobs",
@@ -484,6 +485,7 @@ def match_resume_with_job(
                 job_id,
                 job_title,
                 company_name,
+                job_description,
                 experience_required,
                 location
             FROM job_descriptions
@@ -582,6 +584,14 @@ def match_resume_with_job(
 
         career_advice = generate_career_advice(
         skill_gap=skill_gap_result
+        )
+        # -----------------------------------------------------
+        # 5C. Analyse resume against the job description
+        # -----------------------------------------------------
+
+        jd_analysis = analyze_job_description(
+        resume_skills=resume_skills,
+        job_description=job["job_description"]
         )
 
         matched_skills_json = json.dumps(
@@ -699,7 +709,8 @@ def match_resume_with_job(
             "job_skills": job_skill_rows,
             "match": match_result,
             "skill_gap": skill_gap_result,
-            "career_advice": career_advice
+            "career_advice": career_advice,
+            "jd_analysis": jd_analysis
         }
 
     except HTTPException:

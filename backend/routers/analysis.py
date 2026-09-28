@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from database import get_db_connection
 from routers.auth import get_current_user
 from services.resume_analyser import analyse_resume
+from services.resume_optimizer import optimize_resume
 
 
 router = APIRouter(
@@ -77,6 +78,15 @@ def analyse_uploaded_resume(
         # ---------------------------------------------------------
         analysis = analyse_resume(
             resume["extracted_text"]
+        )
+
+        # ---------------------------------------------------------
+        # Generate resume optimization report
+        # ---------------------------------------------------------
+
+        optimization = optimize_resume(
+        resume_text=resume["extracted_text"],
+        analysis=analysis
         )
 
         scores = analysis["scores"]
@@ -316,7 +326,8 @@ def analyse_uploaded_resume(
                 "original_filename": resume["original_filename"]
             },
             "saved_resume_skills": saved_resume_skills,
-            "analysis": analysis
+            "analysis": analysis,
+            "optimization": optimization
         }
 
     except HTTPException:

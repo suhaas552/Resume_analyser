@@ -50,10 +50,14 @@ SECTION_NAMES = {
         "employment",
     ],
     "projects": [
-        "projects",
-        "academic projects",
-        "personal projects",
-        "project experience",
+    "projects",
+    "key projects",
+    "technical projects",
+    "academic projects",
+    "personal projects",
+    "project experience",
+    "selected projects",
+    "professional projects",
     ],
     "skills": [
         "skills",
