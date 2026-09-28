@@ -11,6 +11,7 @@ from services.job_matcher import calculate_job_match
 from services.job_recommender import recommend_jobs
 from services.career_advisor import generate_career_advice
 from services.jd_analyzer import analyze_job_description
+from services.job_ats_scorer import calculate_job_ats_score
 
 router = APIRouter(
     prefix="/jobs",
@@ -535,6 +536,45 @@ def match_resume_with_job(
         ]
 
         # -----------------------------------------------------
+        # 3B. Get saved resume analysis
+        # -----------------------------------------------------
+
+        cursor.execute(
+        """
+        SELECT
+        overall_score,
+        ats_score,
+        skills_score,
+        education_score,
+        experience_score,
+        project_score
+        FROM resume_analyses
+        WHERE resume_id = %s
+        LIMIT 1
+        """,
+        (resume_id,)
+        )
+
+        resume_analysis_row = cursor.fetchone()
+
+        if resume_analysis_row is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Resume must be analysed before matching it with a job"
+            )
+
+        analysis = {
+        "scores": {
+        "overall_score": resume_analysis_row["overall_score"],
+        "ats_score": resume_analysis_row["ats_score"],
+        "skills_score": resume_analysis_row["skills_score"],
+        "education_score": resume_analysis_row["education_score"],
+        "experience_score": resume_analysis_row["experience_score"],
+        "project_score": resume_analysis_row["project_score"]
+        }
+        }
+ 
+        # -----------------------------------------------------
         # 4. Get required job skills
         # -----------------------------------------------------
 
@@ -592,6 +632,17 @@ def match_resume_with_job(
         jd_analysis = analyze_job_description(
         resume_skills=resume_skills,
         job_description=job["job_description"]
+        )
+
+        # -----------------------------------------------------
+        # 5D. Calculate job-specific ATS score
+        # -----------------------------------------------------
+
+        job_ats_result = calculate_job_ats_score(
+        resume_analysis=analysis,
+        match_result=match_result,
+        jd_analysis=jd_analysis,
+        skill_gap=skill_gap_result
         )
 
         matched_skills_json = json.dumps(
@@ -710,7 +761,8 @@ def match_resume_with_job(
             "match": match_result,
             "skill_gap": skill_gap_result,
             "career_advice": career_advice,
-            "jd_analysis": jd_analysis
+            "jd_analysis": jd_analysis,
+            "job_ats": job_ats_result
         }
 
     except HTTPException:
