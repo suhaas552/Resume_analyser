@@ -6,7 +6,7 @@ from database import get_db_connection
 from routers.auth import get_current_user
 from services.resume_analyser import analyse_resume
 from services.resume_optimizer import optimize_resume
-
+from services.resume_rewriter import generate_resume_rewrite_suggestions
 
 router = APIRouter(
     prefix="/analysis",
@@ -86,6 +86,14 @@ def analyse_uploaded_resume(
 
         optimization = optimize_resume(
         resume_text=resume["extracted_text"],
+        analysis=analysis
+        )
+
+        # ---------------------------------------------------------
+        # Generate resume rewrite suggestions
+        # ---------------------------------------------------------
+
+        rewrite_suggestions = generate_resume_rewrite_suggestions(
         analysis=analysis
         )
 
@@ -327,7 +335,8 @@ def analyse_uploaded_resume(
             },
             "saved_resume_skills": saved_resume_skills,
             "analysis": analysis,
-            "optimization": optimization
+            "optimization": optimization,
+            "rewrite_suggestions": rewrite_suggestions  
         }
 
     except HTTPException:

@@ -12,6 +12,7 @@ from services.job_recommender import recommend_jobs
 from services.career_advisor import generate_career_advice
 from services.jd_analyzer import analyze_job_description
 from services.job_ats_scorer import calculate_job_ats_score
+from services.job_resume_optimizer import optimize_resume_for_job
 
 router = APIRouter(
     prefix="/jobs",
@@ -645,6 +646,17 @@ def match_resume_with_job(
         skill_gap=skill_gap_result
         )
 
+        # -----------------------------------------------------
+        # 5E. Generate job-tailored resume optimization
+        # -----------------------------------------------------
+
+        job_resume_optimization = optimize_resume_for_job(
+        resume_analysis=analysis,
+        jd_analysis=jd_analysis,
+        skill_gap=skill_gap_result,
+        job_ats=job_ats_result
+        )
+
         matched_skills_json = json.dumps(
             match_result["matched_skills"],
             ensure_ascii=False
@@ -762,7 +774,8 @@ def match_resume_with_job(
             "skill_gap": skill_gap_result,
             "career_advice": career_advice,
             "jd_analysis": jd_analysis,
-            "job_ats": job_ats_result
+            "job_ats": job_ats_result,
+            "job_resume_optimization": job_resume_optimization
         }
 
     except HTTPException:
